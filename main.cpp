@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <ctime>
 #include <curses.h>
+#include "game.hpp"
 
 using namespace std;
 
@@ -34,16 +35,21 @@ void shutdown()
 int main()
 {
 	initialize();
-
-	char ch = 'n';
+	Game game;
+//	char ch = 'n';
 
 	do{
-		move(5,5);
-		addch(ch);
-		mvprintw(2, 2, "jks");
-		ch = getch();
+	//	move(5,5);
+	//	addch(ch);
+	//	mvprintw(2, 2, "jks");
+	//	ch = getch();
 	
-	}while(ch != 'Q' && ch != 'q');
+		game.draw();
+		game.processInput();
+		//ch = getch();
+
+
+	}while(game.Status != Status_QUIT);
 
 	shutdown();
 	return 0;
