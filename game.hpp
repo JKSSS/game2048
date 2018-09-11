@@ -229,7 +229,8 @@ void Game::processInput()
 	else if(ch == 'S')
 		moveDown();
 	else
-		Status = (Status+ 1)%3;
+		;
+		//	Status = (Status+ 1)%3;
 }
 
 void Game::initArray()
