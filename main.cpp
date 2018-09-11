@@ -49,7 +49,7 @@ int main()
 		//ch = getch();
 
 
-	}while(game.Status != Status_QUIT);
+	}while(game.getStatus() != Status_QUIT);
 
 	shutdown();
 	return 0;

@@ -1,4 +1,8 @@
 #include <ncurses.h>
+#include <vector>
+
+using namespace std;
+
 
 #define N 4
 #define WIDTH 5
@@ -7,6 +11,7 @@
 #define Status_WIN    	1
 #define Status_NORNAL	2
 #define Status_QUIT		3
+
 class Game{
 public :
 	Game(){
@@ -15,21 +20,214 @@ public :
 
 	void draw();
 	void processInput();
-	int Status;
+//	int Status;
+	int getStatus() {return Status; }
 
 private:
 	void initArray();
-	int data[N][N];
 	void drawItem(int row, int col, char ch);
 	void drawNum(int row, int col, int num);
+	void restart();
+	bool randNew();
+
+	void moveLeft();
+	void moveRight();
+	void moveUp();
+	void moveDown();
+
+private: 
+	int data[N][N];
+	int Status;
 };
+
+void Game::moveUp()
+{
+	for(int j =0; j<N; ++j)
+	{
+		int writePos = 0;
+		int lastNum =0;
+		for(int i=0; i<N; ++i)
+		{
+			if(data[i][j] == 0)
+				continue;
+			
+			if(lastNum == 0)
+				lastNum = data[i][j];
+			else
+			{
+				if(lastNum == data[i][j])
+				{
+					data[writePos][j] = lastNum*2;
+					lastNum = 0;
+				}
+				else
+				{
+					data[writePos][j] = lastNum;
+					lastNum = data[i][j];
+				}
+				++writePos;
+			}
+			data[i][j] = 0;
+		}
+		if(lastNum != 0)
+			data[writePos][j] = lastNum;
+		
+	}
+}
+
+void Game::moveDown()
+{
+	for(int j=0; j<N; ++j)
+	{
+		int writePos = N-1;
+		int lastNum = 0;
+		for(int i=N-1; i>=0; --i)
+		{
+			if(data[i][j] == 0)
+				continue;
+
+			if(lastNum == 0)
+				lastNum = data[i][j];
+			else
+			{
+				if(lastNum == data[i][j])
+				{
+					data[writePos][j] = lastNum*2;
+					lastNum = 0;
+				}
+				else
+				{
+					data[writePos][j] = lastNum;
+					lastNum = data[i][j];
+				}
+				--writePos;
+			}
+			data[i][j] = 0;
+		}
+		if(lastNum != 0)
+			data[writePos][j] = lastNum;
+	}
+}
+
+void Game::moveRight()
+{
+	for(int i= 0; i<N; ++i)
+	{
+		int writePos = N-1;
+		int lastNum = 0;
+		for(int j =N-1; j>=0; --j)
+		{
+			if(data[i][j] == 0)
+				continue;
+			
+			if(lastNum == 0)
+				lastNum = data[i][j];
+			else
+			{
+				if(lastNum == data[i][j])
+				{
+					data[i][writePos] = lastNum*2;
+					lastNum = 0;
+				}
+				else
+				{
+					data[i][writePos] = lastNum;
+					lastNum = data[i][j];
+				}
+				--writePos;
+			}
+			data[i][j] = 0;
+		}
+		if(lastNum != 0)
+			data[i][writePos] = lastNum;
+	
+	}
+}
+
+
+void Game::moveLeft()
+{
+	for(int i=0; i<N;i++)
+	{
+		
+		int writePos = 0;
+		int lastNum =0;
+		for(int j =0; j<N; ++j)
+		{
+			if(data[i][j] == 0)
+				continue;
+
+			if(lastNum == 0)
+				lastNum = data[i][j];
+			else
+			{
+				if(lastNum == data[i][j])
+				{
+					data[i][writePos] = lastNum*2;
+					lastNum = 0;
+				}
+				else
+				{
+					data[i][writePos] = lastNum;
+					lastNum = data[i][j];					
+				}
+				++writePos;
+			}
+			data[i][j] = 0;
+		}
+		if(lastNum != 0)
+			data[i][writePos] = lastNum;
+	}
+}
+
+
+bool Game::randNew()
+{
+	vector<int> emptyPos;
+	for(int i=0; i<N; ++i)
+		for(int j=0; j<N; ++j)
+		{
+			if(data[i][j] == 0)
+				emptyPos.push_back(i*N+j);
+		}
+
+	if(emptyPos.empty())
+		return false;
+
+	int value = emptyPos[rand() % emptyPos.size()];
+	data[value/N][value%N] = rand() % 10 == 1 ? 4 : 2;
+	return true;
+}
+
+
+void Game::restart()
+{
+	for(int i =0; i<N; ++i)
+		for(int j=0; j<N; ++j)
+			data[i][j] = 0;
+	randNew();
+	randNew();
+	Status = Status_NORNAL;
+}
 
 void Game::processInput()
 {
 	char ch ;
 	ch = getch();
+	if(ch>='a' && ch <='z')
+		ch-=32;
 	if(ch == 'Q' || ch == 'q')
 		Status = Status_QUIT;
+	else if(ch == 'R')
+		restart();
+	else if(ch == 'A')
+		moveLeft();
+	else if(ch == 'D')
+		moveRight();
+	else if(ch == 'W')
+		moveUp();
+	else if(ch == 'S')
+		moveDown();
 	else
 		Status = (Status+ 1)%3;
 }
@@ -38,7 +236,7 @@ void Game::initArray()
 {
 	for(int i=0; i<N; ++i)
 		for(int j=0; j<N; ++j)
-			data[i][j] = 1024;
+			data[i][j] = 4;
 }
 
 void Game::draw()
