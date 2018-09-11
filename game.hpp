@@ -6,6 +6,7 @@ using namespace std;
 
 #define N 4
 #define WIDTH 5
+#define TARGET 256
 
 #define Status_FAILED	0
 #define Status_WIN    	1
@@ -15,7 +16,8 @@ using namespace std;
 class Game{
 public :
 	Game(){
-		initArray();
+//		initArray();
+		restart();
 	}
 
 	void draw();
@@ -30,24 +32,63 @@ private:
 	void restart();
 	bool randNew();
 
-	void moveLeft();
-	void moveRight();
-	void moveUp();
-	void moveDown();
+	bool moveLeft();
+	bool moveRight();
+	bool moveUp();
+	bool moveDown();
 
+	bool isDead();
+	bool isWin();
+	bool change(int before[N][N], int after[N][N]);
 private: 
 	int data[N][N];
 	int Status;
 };
 
-void Game::moveUp()
+bool Game::change(int before[N][N], int after[N][N])
 {
+	for(int i=0; i<N; i++)
+		for(int j=0; j<N; j++)
+			if(before[i][j]!= after[i][j])
+				return true;
+	return false;
+}
+
+bool Game::isWin()
+{
+	for(int i =0; i<N; i++)
+		for(int j=0; j<N; j++)
+			if(data[i][j] == TARGET)
+				return true;
+	return false;
+}
+
+bool Game::isDead()
+{
+	for(int i =0; i<N; i++)
+		for(int j=0; j<N; j++)
+		{
+			if((j+1<N) &&( (data[i][j] * data[i][j+1] == 0) || data[i][j] == data[i][j+1]))
+				return false;
+			if((i+1<N) && ((data[i][j] * data[i+1][j] == 0) || data[i][j] == data[i+1][j]))
+				return false;
+		}
+
+	return true;
+}
+
+
+bool Game::moveUp()
+{
+	int tmp[N][N];
+	
 	for(int j =0; j<N; ++j)
 	{
 		int writePos = 0;
 		int lastNum =0;
 		for(int i=0; i<N; ++i)
 		{
+			tmp[i][j] = data[i][j];
 			if(data[i][j] == 0)
 				continue;
 			
@@ -70,19 +111,22 @@ void Game::moveUp()
 			data[i][j] = 0;
 		}
 		if(lastNum != 0)
-			data[writePos][j] = lastNum;
-		
+			data[writePos][j] = lastNum;	
 	}
+	return change(tmp, data);
+
 }
 
-void Game::moveDown()
+bool Game::moveDown()
 {
+	int tmp[N][N];
 	for(int j=0; j<N; ++j)
 	{
 		int writePos = N-1;
 		int lastNum = 0;
 		for(int i=N-1; i>=0; --i)
 		{
+			tmp[i][j] = data[i][j];
 			if(data[i][j] == 0)
 				continue;
 
@@ -107,16 +151,19 @@ void Game::moveDown()
 		if(lastNum != 0)
 			data[writePos][j] = lastNum;
 	}
+	return change(tmp, data);
 }
 
-void Game::moveRight()
+bool Game::moveRight()
 {
+	int tmp[N][N];
 	for(int i= 0; i<N; ++i)
 	{
 		int writePos = N-1;
 		int lastNum = 0;
 		for(int j =N-1; j>=0; --j)
 		{
+			tmp[i][j] = data[i][j];
 			if(data[i][j] == 0)
 				continue;
 			
@@ -140,20 +187,21 @@ void Game::moveRight()
 		}
 		if(lastNum != 0)
 			data[i][writePos] = lastNum;
-	
 	}
+	return change(tmp, data);
 }
 
 
-void Game::moveLeft()
+bool Game::moveLeft()
 {
+	int tmp[N][N];
 	for(int i=0; i<N;i++)
 	{
-		
 		int writePos = 0;
 		int lastNum =0;
 		for(int j =0; j<N; ++j)
 		{
+			tmp[i][j] = data[i][j];
 			if(data[i][j] == 0)
 				continue;
 
@@ -178,6 +226,7 @@ void Game::moveLeft()
 		if(lastNum != 0)
 			data[i][writePos] = lastNum;
 	}
+	return change(tmp,data);
 }
 
 
@@ -214,23 +263,36 @@ void Game::processInput()
 {
 	char ch ;
 	ch = getch();
+	
 	if(ch>='a' && ch <='z')
 		ch-=32;
-	if(ch == 'Q' || ch == 'q')
+	
+	if(Status == Status_NORNAL){	
+		bool update = false;
+		
+		if(ch == 'A')
+			update = moveLeft();
+		else if(ch == 'D')
+			update = moveRight();
+		else if(ch == 'W')
+			update = moveUp();
+		else if(ch == 'S')
+			update = moveDown();
+		else
+			;
+		//	Status = (Status+ 1)%3;
+		if(update)
+			randNew();
+		if(isWin())
+			Status = Status_WIN;
+		if(isDead())
+			Status = Status_FAILED;
+	}
+
+	if(ch == 'Q')
 		Status = Status_QUIT;
 	else if(ch == 'R')
 		restart();
-	else if(ch == 'A')
-		moveLeft();
-	else if(ch == 'D')
-		moveRight();
-	else if(ch == 'W')
-		moveUp();
-	else if(ch == 'S')
-		moveDown();
-	else
-		;
-		//	Status = (Status+ 1)%3;
 }
 
 void Game::initArray()
